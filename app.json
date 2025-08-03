@@ -1,0 +1,76 @@
+{
+  "expo": {
+    "name": "pulse",
+    "slug": "pulse",
+    "version": "1.1.0",
+    "orientation": "portrait",
+    "icon": "./assets/images/icon.png",
+    "scheme": "pulse",
+    "userInterfaceStyle": "automatic",
+    "newArchEnabled": true,
+    "platforms": [
+      "android"
+    ],
+    "privacy": "public",
+    "privacyPolicyUrl": "https://www.freeprivacypolicy.com/live/8fc82a6c-8b43-41d2-8bdd-d629fc820035",
+    "termsOfServiceUrl": "https://www.freeprivacypolicy.com/live/8fc82a6c-8b43-41d2-8bdd-d629fc820035",
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/images/adaptive-icon.png",
+        "backgroundColor": "#ffffff"
+      },
+      "edgeToEdgeEnabled": true,
+      "package": "com.fxpulse.app",
+      "versionCode": 2,
+      "targetSdkVersion": 34,
+      "compileSdkVersion": 34,
+      "permissions": [
+        "com.android.vending.BILLING",
+        "INTERNET",
+        "ACCESS_NETWORK_STATE"
+      ],
+      "intentFilters": [
+        {
+          "action": "VIEW",
+          "autoVerify": true,
+          "data": [
+            {
+              "scheme": "com.fxpulse.app"
+            }
+          ],
+          "category": [
+            "BROWSABLE",
+            "DEFAULT"
+          ]
+        }
+      ]
+    },
+    "web": {
+      "bundler": "metro",
+      "output": "static",
+      "favicon": "./assets/images/favicon.png"
+    },
+    "plugins": [
+      "expo-router",
+      [
+        "expo-splash-screen",
+        {
+          "image": "./assets/images/splash-icon.png",
+          "imageWidth": 200,
+          "resizeMode": "contain",
+          "backgroundColor": "#ffffff"
+        }
+      ]
+    ],
+    "experiments": {
+      "typedRoutes": true
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "ef780fcc-20a0-426f-86a7-0855d53ca52b"
+      }
+    },
+    "owner": "mb001"
+  }
+}
