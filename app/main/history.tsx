@@ -536,8 +536,8 @@ export default function HistoryScreen() {
                   {isPremium ? 'Add Your First Trade' : 'Subscribe to Unlock'}
                 </Text>
               </TouchableOpacity>
-            </View>
-          ) : (
+        </View>
+      ) : (
             filteredAnalyses.map((analysis) => (
               <View key={analysis.id} style={themedStyles.analysisCard}>
                 <View style={themedStyles.analysisHeader}>
@@ -546,7 +546,7 @@ export default function HistoryScreen() {
                       {new Date(analysis.date).toLocaleDateString()}
                     </Text>
                     <Text style={themedStyles.analysisNewsType}>{analysis.newsType}</Text>
-                  </View>
+          </View>
                   <View style={themedStyles.analysisStatus}>
                     {analysis.status === 'completed' ? (
                       <View style={[
@@ -606,7 +606,7 @@ export default function HistoryScreen() {
                           { color: analysis.actualResult.profit >= 0 ? "#27ae60" : "#e74c3c" }
                         ]}>
                           ${analysis.actualResult.profit}
-                        </Text>
+        </Text>
                       </View>
                     </View>
                     
@@ -629,11 +629,11 @@ export default function HistoryScreen() {
             <Text style={themedStyles.lockTitle}>Trading Journal Locked</Text>
             <Text style={themedStyles.lockSubtitle}>
               Subscribe to Premium to unlock your personal trading journal and track your performance. Currently you have no active plan.
-            </Text>
+        </Text>
             <TouchableOpacity style={themedStyles.unlockButton} onPress={navigateToSettings}>
               <Text style={themedStyles.unlockButtonText}>Unlock Trading Journal</Text>
             </TouchableOpacity>
-          </View>
+      </View>
         </View>
       )}
 
@@ -653,7 +653,7 @@ export default function HistoryScreen() {
               <TouchableOpacity onPress={() => setShowResultModal(false)}>
                 <Ionicons name="close" size={24} color={theme === "dark" ? "#fff" : "#000"} />
               </TouchableOpacity>
-            </View>
+        </View>
             
             <View style={themedStyles.modalBody}>
               {selectedAnalysis ? (
@@ -750,7 +750,7 @@ export default function HistoryScreen() {
                       placeholder="e.g., NFP, CPI, GDP, Interest Rate Decision"
                       placeholderTextColor={theme === "dark" ? "#666" : "#999"}
                     />
-                  </View>
+          </View>
                   
                   <View style={themedStyles.inputGroup}>
                     <Text style={themedStyles.inputLabel}>Market Direction</Text>

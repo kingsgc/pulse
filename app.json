@@ -11,23 +11,19 @@
     "platforms": [
       "android"
     ],
-    "privacy": "public",
-    "privacyPolicyUrl": "https://www.freeprivacypolicy.com/live/8fc82a6c-8b43-41d2-8bdd-d629fc820035",
-    "termsOfServiceUrl": "https://www.freeprivacypolicy.com/live/8fc82a6c-8b43-41d2-8bdd-d629fc820035",
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
       "edgeToEdgeEnabled": true,
-      "package": "com.fxpulse.app",
+      "package": "beltank.aplicxoe",
       "versionCode": 2,
-      "targetSdkVersion": 34,
-      "compileSdkVersion": 34,
       "permissions": [
         "com.android.vending.BILLING",
         "INTERNET",
-        "ACCESS_NETWORK_STATE"
+        "ACCESS_NETWORK_STATE",
+        "WAKE_LOCK"
       ],
       "intentFilters": [
         {
@@ -60,7 +56,8 @@
           "resizeMode": "contain",
           "backgroundColor": "#ffffff"
         }
-      ]
+      ],
+      "expo-in-app-purchases"
     ],
     "experiments": {
       "typedRoutes": true

@@ -6,16 +6,8 @@ import React, { useContext, useEffect, useState } from "react";
 import { Alert, Linking, ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { ThemeContext } from "../theme-context";
 
-// Import Google IAP
-import {
-  finishTransaction,
-  getProducts,
-  initConnection,
-  Product,
-  Purchase,
-  PurchaseError,
-  requestPurchase
-} from 'react-native-iap';
+// Import expo-in-app-purchases
+import { connectAsync, getProductsAsync, IAPResponseCode, purchaseItemAsync } from 'expo-in-app-purchases';
 
 const DEVICE_ID_KEY = '@fxpulse_device_id';
 
@@ -47,7 +39,7 @@ export default function SettingScreen() {
   const [userPlan, setUserPlan] = useState("Free");
   const [selectedPackage, setSelectedPackage] = useState<PackageType | null>(null);
   const [purchasing, setPurchasing] = useState(false);
-  const [products, setProducts] = useState<Product[]>([]);
+  const [products, setProducts] = useState<any[]>([]);
   const [iapInitialized, setIapInitialized] = useState(false);
 
   // Check subscription status
@@ -140,7 +132,7 @@ export default function SettingScreen() {
       savings: "Save 50%",
       features: [
         "All News Types (CPI, GDP, PMI, etc.)",
-        "Historical Market Data",
+        "Historical MarketData",
         "Custom Technical Indicators",
         "AI Predictions",
         "Trading Journal",
@@ -157,9 +149,12 @@ export default function SettingScreen() {
 
   // Initialize IAP
   useEffect(() => {
-    initializeIAP();
-    const getOrCreateDeviceId = async () => {
+    const initializeApp = async () => {
       try {
+        // Initialize IAP
+        await initializeIAP();
+        
+        // Get or create device ID
         let id = await AsyncStorage.getItem(DEVICE_ID_KEY);
         if (!id) {
           id = await Crypto.getRandomBytesAsync(16).then(bytes =>
@@ -168,45 +163,50 @@ export default function SettingScreen() {
           await AsyncStorage.setItem(DEVICE_ID_KEY, id || "");
         }
         setDeviceId(id || "");
-      } catch (e) {
-        setDeviceId("Error generating ID");
+        
+        // Check for existing subscription
+        await checkSubscriptionStatus();
+      } catch (error) {
+        console.error('Error initializing app:', error);
+        setDeviceId("Error initializing");
       } finally {
         setLoadingId(false);
       }
     };
-    getOrCreateDeviceId();
     
-    // Check for existing subscription
-    checkSubscriptionStatus();
+    initializeApp();
   }, []);
 
-  // Initialize Google IAP
+  // Initialize In-App Purchases
   const initializeIAP = async () => {
     try {
-      // Only support Android for IAP
-      await initConnection();
+      // Initialize expo-in-app-purchases
+      await connectAsync();
+      
       setIapInitialized(true);
       
       // Get available products
-      const productIds = [
-        'weekly_premium',
-        'monthly_premium', 
-        'yearly_premium',
-        'lifetime_premium'
-      ];
+      const productIds = ['weekly_premium', 'monthly_premium', 'yearly_premium', 'lifetime_premium'];
+      const { responseCode, results } = await getProductsAsync(productIds);
       
-      const availableProducts = await getProducts({ skus: productIds });
-      setProducts(availableProducts);
-      
-      console.log('IAP initialized successfully');
-      console.log('Available products:', availableProducts);
+      if (responseCode === IAPResponseCode.OK && results) {
+        setProducts(results);
+        console.log('IAP initialized successfully');
+        console.log('Available products:', results);
+      } else {
+        console.log('Failed to get products, response code:', responseCode);
+      }
     } catch (error) {
       console.error('Failed to initialize IAP:', error);
-      Alert.alert(
-        'IAP Error',
-        'Failed to initialize payment system. Please try again later.',
-        [{ text: 'OK' }]
-      );
+      if (__DEV__) {
+        console.log('IAP initialization failed in development mode');
+      } else {
+        Alert.alert(
+          'IAP Error',
+          'Failed to initialize payment system. Please try again later.',
+          [{ text: 'OK' }]
+        );
+      }
     }
   };
 
@@ -225,52 +225,46 @@ export default function SettingScreen() {
     setSelectedPackage(packageType);
     
     try {
-      // Find the product for this package type
-      const packageConfig = premiumPackages.find(pkg => pkg.type === packageType);
-      if (!packageConfig) {
-        throw new Error('Package not found');
-      }
+      // Find the product for the selected package type
+      const productId = `${packageType}_premium`;
+      const product = products.find(p => p.productId === productId);
 
-      const product = products.find(p => p.productId === packageConfig.id);
       if (!product) {
+        if (__DEV__) {
+          console.log('Simulating purchase in development mode');
+          await new Promise(resolve => setTimeout(resolve, 2000)); // Simulate delay
+          
+          const mockPurchase = {
+            productId: productId,
+            purchaseToken: 'mock_token_' + Date.now(),
+            transactionId: 'mock_transaction_' + Date.now(),
+            transactionDate: Date.now(),
+            transactionReceipt: 'mock_receipt',
+            purchaseTime: Date.now(),
+            originalTransactionDateIOS: Date.now(),
+            originalTransactionIdentifierIOS: 'mock_original_id',
+          } as any;
+          
+          await handleSuccessfulPurchase(mockPurchase, packageType);
+          return;
+        }
         throw new Error('Product not available');
       }
 
       console.log('Initiating purchase for:', product.productId);
       
-      // Request purchase
-      const purchase = await requestPurchase({
-        sku: product.productId,
-        andDangerouslyFinishTransactionAutomaticallyIOS: false,
-      }) as Purchase;
-
-      console.log('Purchase successful:', purchase);
+      await purchaseItemAsync(product.productId);
       
-      // Handle successful purchase
-      await handleSuccessfulPurchase(purchase, packageType);
+      // If we reach here, the purchase was successful
+      await handleSuccessfulPurchase(product, packageType);
       
-    } catch (error) {
+    } catch (error: any) {
       console.error('Purchase failed:', error);
       
       let errorMessage = 'Purchase failed. Please try again.';
       
-      if (error instanceof PurchaseError) {
-        switch (error.code) {
-          case 'E_ALREADY_OWNED':
-            errorMessage = 'You already own this product.';
-            break;
-          case 'E_USER_CANCELLED':
-            errorMessage = 'Purchase was cancelled.';
-            break;
-          case 'E_ITEM_UNAVAILABLE':
-            errorMessage = 'This product is not available.';
-            break;
-          case 'E_NETWORK_ERROR':
-            errorMessage = 'Network error. Please check your connection.';
-            break;
-          default:
-            errorMessage = `Purchase failed: ${error.message}`;
-        }
+      if (error.message) {
+        errorMessage = `Purchase failed: ${error.message}`;
       }
       
       Alert.alert(
@@ -278,26 +272,14 @@ export default function SettingScreen() {
         errorMessage,
         [{ text: 'OK', onPress: () => setPurchasing(false) }]
       );
+    } finally {
+      setPurchasing(false);
     }
   };
 
   // Handle successful purchase
-  const handleSuccessfulPurchase = async (purchase: Purchase, packageType: PackageType) => {
+  const handleSuccessfulPurchase = async (customerInfo: any, packageType: PackageType) => {
     try {
-      // Acknowledge the purchase
-      // await acknowledgePurchase({ // This line was removed as per the new_code
-      //   token: purchase.purchaseToken,
-      //   productId: purchase.productId,
-      // });
-
-      // Consume the purchase (for consumable products)
-      if (packageType !== 'lifetime') {
-        // await consumePurchase({ // This line was removed as per the new_code
-        //   token: purchase.purchaseToken,
-        //   productId: purchase.productId,
-        // });
-      }
-
       // Update subscription status
       const planName = packageType === "weekly" ? "Weekly Pro" : 
                       packageType === "monthly" ? "Monthly Pro" :
@@ -312,17 +294,11 @@ export default function SettingScreen() {
         plan: planName,
         type: packageType,
         subscribedAt: new Date().toISOString(),
-        purchaseToken: purchase.purchaseToken,
-        productId: purchase.productId,
+        purchaseToken: customerInfo.originalPurchaseDate, // or other relevant info
+        productId: packageType,
       };
       
       await AsyncStorage.setItem('@fxpulse_subscription', JSON.stringify(subscriptionData));
-      
-      // Finish the transaction
-      await finishTransaction({
-        purchase,
-        isConsumable: packageType !== 'lifetime',
-      });
       
       setPurchasing(false);
       
