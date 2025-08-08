@@ -56,8 +56,7 @@
           "resizeMode": "contain",
           "backgroundColor": "#ffffff"
         }
-      ],
-      "expo-in-app-purchases"
+      ]
     ],
     "experiments": {
       "typedRoutes": true
